@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>simple brick breaker javascript game</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+      canvas {
+        background: #2a1ca8;
+        display: block;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas" width="960" height="640"></canvas>
+
+    <script>
+      // JavaScript code goes here
+      const ballRadius = 10;
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const paddleHeight = 15;
+      const paddleWidth = 150;
+      const brickRowCount = 6;
+      const brickColumnCount = 10;
+      const brickWidth = 75;
+      const brickHeight = 20;
+      const brickPadding = 10;
+      const brickOffsetTop = 30;
+      const brickOffsetLeft = 50;
+      let paddleX = (canvas.width - paddleWidth) / 2;
+      let rightPressed = false;
+      let leftPressed = false;
+      let score = 0;
+
+      // these decide the starting point of the ball.
+      //it is coded so it alwayys spawns at the bottom centre of the canvas
+      let x = canvas.width / 2;
+
+      let y = canvas.height - 60;
+
+      //these decide the speed at which the ball is launched
+      let dx = 2;
+
+      let dy = -2;
+      // this contains brick columns (c) and brick rows (r). the following code contains objects that contain the x and y position to paint each brick on the screen
+      // it will loop through the rows and columns to create the new bricks
+      const bricks = [];
+      for (let  c = 0; c < brickColumnCount; c++) {
+        bricks[c] = [];
+        for (let r = 0; r < brickRowCount; r++){
+          bricks [c][r] = {x: 0, y: 0, status: 1 };
+        }
+      }
+      
+function collisionDetection() {
+  for (let c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+      const b = bricks[c][r];
+      if (b.status === 1) {
+        //calculations
+      //the following code will let the ball bounce off the brick, but only if the following four statements are true
+      //the x position of the ball is greater than the x position of the brick ,the x position of the ball is less than the x position of the brick plus its width
+      //the y position of the ball is greater than the y position of the brick , the y position of the ball is leff than the y position of the brick plus its height
+
+        if (
+          x > b.x &&
+          x < b.x + brickWidth &&
+          y > b.y &&
+          y < b.y + brickHeight
+        ) {
+          dy = -dy;
+          b.status = 0;
+          score++;
+          if (score === brickRowCount * brickColumnCount){
+            alert("YOU WIN, CONGRATS!");
+            document.location.reload();
+            clearInterval(interval); // needed for chrome to end the game
+          }
+        }
+      }
+    }
+  }
+}
+
+function drawScore(){
+  ctx.font = "32px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText(`Score: ${score}`, 8, 20)
+}
+
+function drawControls(){
+  ctx.font = "32px Arial";
+  ctx.fillStyle = "#0095DD";
+  ctx.fillText(`Controls: left and right arrow keys`, 8, 610)
+
+}
+
+function drawBall() {
+
+        ctx.beginPath();
+        //this sets an arc for the object, using x and y to determine the angle
+        //ballRadius being its size, 0 being start angle, which changes the angle of the shape of the ball
+        ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = "#000000";
+        ctx.fillStyle = " #7851a9";
+        
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+}
+
+function drawPaddle() {
+  ctx.beginPath();
+  ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+  ctx.fillStyle = "#0095DD";
+  ctx.strokeStyle = "#000000";
+  ctx.fill();
+  ctx.stroke();
+  ctx.closePath();
+}
+
+function drawBricks(){
+
+for (let c = 0; c < brickColumnCount; c++){
+
+  for (let r = 0; r < brickRowCount; r++){
+    if (bricks[c][r].status === 1){
+
+    const brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+
+    const brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+
+    bricks[c][r].x = brickX;
+
+    bricks[c][r].y = brickY;
+
+    ctx.beginPath();
+
+    ctx.rect(brickX, brickY , brickWidth, brickHeight);
+
+    ctx.fillStyle = "#FFA500";
+
+    ctx.strokeStyle = "#000000"
+
+    ctx.fill();
+
+    ctx.stroke();
+
+    ctx.closePath();
+  }
+}
+}
+
+}
+
+function draw() {
+  
+  //clearRect will erase previous frames of the ball so it doesnt
+  //look like a constant streak
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawBricks();
+  drawBall();
+  drawPaddle();
+  drawScore();
+  drawControls();
+  collisionDetection();
+   if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+    dx = -dx;
+  }
+  if (y + dy < ballRadius) {
+    
+    dy = -dy;
+  
+  } else if (y + dy > canvas.height - ballRadius) {
+    
+    if (x > paddleX && x < paddleX + paddleWidth) {
+      
+      dy = -dy;
+    
+    } else {
+      //this will pop up an alert box, informing the player that they have lost
+      alert("GAME OVER");
+      //as soon as the player closes the alert box, this will reload the game, starting it again
+      document.location.reload();
+      
+      clearInterval(interval);
+  }
+}
+//this determines the movement speed of the paddles and stops them
+//when at the boundaries of the canvas
+  if (rightPressed) {
+  paddleX = Math.min(paddleX + 7, canvas.width - paddleWidth);
+} else if (leftPressed) {
+  paddleX = Math.max(paddleX - 7, 0);
+}
+  
+  x += dx;
+  
+  y += dy;
+}
+//these event listeners will listen for key presses, which in this case
+//is the left and right arrow keys
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+//this will set the pressed variable to true while the left or right
+//arrow key is pressed down, but as soon as its released,
+//it will revert to false, stopping movement of the paddle
+function keyDownHandler(e) {
+  if (e.key === "Right" || e.key === "ArrowRight") {
+    rightPressed = true;
+  } else if (e.key === "Left" || e.key === "ArrowLeft") {
+    leftPressed = true;
+  }
+}
+function keyUpHandler(e) {
+  if (e.key === "Right" || e.key === "ArrowRight") {
+    rightPressed = false;
+  } else if (e.key === "Left" || e.key === "ArrowLeft") {
+    leftPressed = false;
+  }
+}
+
+
+      //this repeatedly calls the draw function every 10ms
+     const interval = setInterval(draw, 10);
+    </script>
+  </body>
+</html>
